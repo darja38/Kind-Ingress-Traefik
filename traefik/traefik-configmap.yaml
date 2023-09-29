@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traefik-internal-config
+  namespace: default
+data:
+  traefik.toml: |
+    [entryPoints]
+      [entryPoints.web]
+        address = ":80"
+      [entryPoints.websecure]
+        address = ":443"
+      [entryPoints.traefik]
+        address = ":12800"
+    
+    [tls.options]
+      [tls.options.default]
+        cipherSuites = [
+          "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+          "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
+          "TLS_AES_256_GCM_SHA384",
+          "TLS_CHACHA20_POLY1305_SHA256"
+        ]
+        curvePreferences = ["CurveP521", "CurveP384"]
+        minVersion = "VersionTLS12"
+        sniStrict = false
+
+    [tls]
+      [tls.stores]
+        [tls.stores.default]
+          [tls.stores.default.defaultCertificate]
+            CertFile = "/ssl/tls.crt"
+            KeyFile = "/ssl/tls.key"
+      [[tls.certificates]]
+        CertFile = "/ssl/tls.crt"
+        KeyFile = "/ssl/tls.key"
+        stores = ["default"]
+
+    [log]
+      level = "DEBUG"
+
+    [api]
+      insecure = true
+      dashboard = true
+      debug = false
+
+    [providers]
+      [providers.kubernetesCRD]
+        namespaces = ["default"]
+      [providers.file]
+        filename = "traefik.toml"
+        directory = "/etc/traefik"
